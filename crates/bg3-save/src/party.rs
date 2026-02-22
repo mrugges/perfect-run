@@ -3,17 +3,17 @@ use crate::models::*;
 use bg3_lib::lsf_reader::{Node, RegionArena, Resource};
 
 /// Extract party data from a parsed globals.lsf resource.
-pub fn extract_party(resource: &Resource) -> Result<PartyData, String> {
+pub fn extract_party(resource: &Resource) -> PartyData {
     let arena = &resource.regions;
 
     let characters = extract_characters(arena);
 
-    Ok(PartyData {
+    PartyData {
         characters,
         gold: extract_gold(arena),
         day: extract_day(arena),
         location: extract_location(arena),
-    })
+    }
 }
 
 /// Extract character data from the globals LSF tree.
@@ -179,7 +179,7 @@ fn extract_equipment(arena: &RegionArena, node: &Node) -> Vec<EquipmentSlot> {
                         equipment.push(slot);
                     }
                     // Also check children of the equipment container
-                    for (_name, child_indices) in &equip_node.children {
+                    for child_indices in equip_node.children.values() {
                         for &child_idx in child_indices {
                             if let Some(child) = arena.get_node(child_idx) {
                                 if let Some(slot) = try_extract_equipment_slot(child) {

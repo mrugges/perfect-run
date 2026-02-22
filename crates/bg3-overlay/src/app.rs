@@ -3,6 +3,7 @@ use bg3_save::models::{Character, PartyData};
 use bg3_save::{lsf, lsv, party, SaveScanner};
 use egui_overlay::egui;
 use egui::Color32;
+use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use std::path::PathBuf;
 use std::sync::mpsc;
 use std::time::{Duration, Instant};
@@ -21,6 +22,7 @@ pub struct OverlayApp {
     expanded_chars: Vec<bool>,
     visible: bool,
     watcher_rx: Option<mpsc::Receiver<()>>,
+    _watcher: Option<RecommendedWatcher>,
     active_tab: Tab,
     storyline_panel: StorylinePanel,
 }
@@ -35,6 +37,7 @@ impl OverlayApp {
             expanded_chars: Vec::new(),
             visible: true,
             watcher_rx: None,
+            _watcher: None,
             active_tab: Tab::Party,
             storyline_panel: StorylinePanel::new(),
         };
@@ -59,29 +62,23 @@ impl OverlayApp {
 
             let (tx, rx) = mpsc::channel();
 
-            std::thread::spawn(move || {
-                use notify::{RecursiveMode, Watcher};
-                let mut watcher =
-                    notify::recommended_watcher(move |res: Result<notify::Event, notify::Error>| {
-                        if let Ok(event) = res {
-                            if event.kind.is_modify() || event.kind.is_create() {
-                                let _ = tx.send(());
-                            }
-                        }
-                    })
-                    .expect("Failed to create file watcher");
-
-                watcher
-                    .watch(&watch_dir, RecursiveMode::Recursive)
-                    .expect("Failed to watch directory");
-
-                // Keep watcher alive
-                loop {
-                    std::thread::sleep(Duration::from_secs(60));
+            match notify::recommended_watcher(move |res: Result<notify::Event, notify::Error>| {
+                if let Ok(event) = res {
+                    if event.kind.is_modify() || event.kind.is_create() {
+                        let _ = tx.send(());
+                    }
                 }
-            });
-
-            self.watcher_rx = Some(rx);
+            }) {
+                Ok(mut watcher) => {
+                    if watcher.watch(&watch_dir, RecursiveMode::Recursive).is_ok() {
+                        self.watcher_rx = Some(rx);
+                        self._watcher = Some(watcher);
+                    }
+                }
+                Err(e) => {
+                    eprintln!("Failed to create file watcher: {}", e);
+                }
+            }
         }
     }
 
@@ -108,7 +105,7 @@ impl OverlayApp {
                 self.error = None;
             }
             Err(e) => {
-                self.error = Some(e);
+                self.error = Some(e.to_string());
             }
         }
         self.save_path = Some(path);
@@ -210,10 +207,25 @@ impl OverlayApp {
 
                             ui.separator();
 
-                            // Character list
-                            let party_clone = party.clone();
-                            for (i, char) in party_clone.characters.iter().enumerate() {
-                                self.render_character(ui, char, i);
+                            // Character list — render inline to avoid
+                            // borrow conflict with &mut self
+                            for i in 0..party.characters.len() {
+                                let char = &party.characters[i];
+                                let header = format!(
+                                    "{} - Lvl {} {} {}",
+                                    char.name, char.level, char.class,
+                                    if char.is_player { "⭐" } else { "" }
+                                );
+                                let expanded = self.expanded_chars.get(i).copied().unwrap_or(false);
+                                let response = ui.selectable_label(expanded, &header);
+                                if response.clicked() {
+                                    if let Some(exp) = self.expanded_chars.get_mut(i) {
+                                        *exp = !*exp;
+                                    }
+                                }
+                                if expanded {
+                                    Self::render_character_details(ui, char, i);
+                                }
                             }
                         } else if self.error.is_none() {
                             ui.label("Loading...");
@@ -226,69 +238,50 @@ impl OverlayApp {
             });
     }
 
-    fn render_character(&mut self, ui: &mut egui::Ui, char: &Character, idx: usize) {
-        let header = format!(
-            "{} - Lvl {} {} {}",
-            char.name,
-            char.level,
-            char.class,
-            if char.is_player { "⭐" } else { "" }
-        );
+    fn render_character_details(ui: &mut egui::Ui, char: &Character, idx: usize) {
+        ui.indent(egui::Id::new(format!("char_{}", idx)), |ui| {
+            ui.label(format!("Race: {}", char.race));
 
-        let expanded = self.expanded_chars.get(idx).copied().unwrap_or(false);
-
-        let response = ui.selectable_label(expanded, &header);
-        if response.clicked() {
-            if let Some(exp) = self.expanded_chars.get_mut(idx) {
-                *exp = !*exp;
+            if let Some((cur, max)) = char.hp {
+                let hp_frac = cur as f32 / max.max(1) as f32;
+                let bar = egui::ProgressBar::new(hp_frac)
+                    .text(format!("HP: {}/{}", cur, max))
+                    .fill(if hp_frac > 0.5 {
+                        Color32::DARK_GREEN
+                    } else if hp_frac > 0.25 {
+                        Color32::from_rgb(200, 150, 0)
+                    } else {
+                        Color32::DARK_RED
+                    });
+                ui.add(bar);
             }
-        }
 
-        if expanded {
-            ui.indent(egui::Id::new(format!("char_{}", idx)), |ui| {
-                ui.label(format!("Race: {}", char.race));
+            let a = &char.abilities;
+            if a.strength > 0 {
+                ui.horizontal_wrapped(|ui| {
+                    ui.spacing_mut().item_spacing.x = 8.0;
+                    ui.label(format!("STR {}", a.strength));
+                    ui.label(format!("DEX {}", a.dexterity));
+                    ui.label(format!("CON {}", a.constitution));
+                    ui.label(format!("INT {}", a.intelligence));
+                    ui.label(format!("WIS {}", a.wisdom));
+                    ui.label(format!("CHA {}", a.charisma));
+                });
+            }
 
-                if let Some((cur, max)) = char.hp {
-                    let hp_frac = cur as f32 / max.max(1) as f32;
-                    let bar = egui::ProgressBar::new(hp_frac)
-                        .text(format!("HP: {}/{}", cur, max))
-                        .fill(if hp_frac > 0.5 {
-                            Color32::DARK_GREEN
-                        } else if hp_frac > 0.25 {
-                            Color32::from_rgb(200, 150, 0)
-                        } else {
-                            Color32::DARK_RED
-                        });
-                    ui.add(bar);
-                }
-
-                let a = &char.abilities;
-                if a.strength > 0 {
-                    ui.horizontal_wrapped(|ui| {
-                        ui.spacing_mut().item_spacing.x = 8.0;
-                        ui.label(format!("STR {}", a.strength));
-                        ui.label(format!("DEX {}", a.dexterity));
-                        ui.label(format!("CON {}", a.constitution));
-                        ui.label(format!("INT {}", a.intelligence));
-                        ui.label(format!("WIS {}", a.wisdom));
-                        ui.label(format!("CHA {}", a.charisma));
-                    });
-                }
-
-                if !char.equipment.is_empty() {
-                    ui.collapsing("Equipment", |ui| {
-                        for eq in &char.equipment {
-                            ui.label(format!("{:?}: {}", eq.slot, eq.item_name));
-                        }
-                    });
-                }
-            });
-        }
+            if !char.equipment.is_empty() {
+                ui.collapsing("Equipment", |ui| {
+                    for eq in &char.equipment {
+                        ui.label(format!("{:?}: {}", eq.slot, eq.item_name));
+                    }
+                });
+            }
+        });
     }
 }
 
-fn load_party_from_save(path: &std::path::Path) -> Result<PartyData, String> {
+fn load_party_from_save(path: &std::path::Path) -> Result<PartyData, bg3_save::Error> {
     let (mut reader, package) = lsv::open_package(path)?;
     let resource = lsf::load_globals(&mut reader, &package)?;
-    party::extract_party(&resource)
+    Ok(party::extract_party(&resource))
 }

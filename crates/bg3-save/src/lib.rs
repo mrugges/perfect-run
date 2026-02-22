@@ -1,3 +1,4 @@
+pub mod error;
 pub mod lsv;
 pub mod lsf;
 pub mod models;
@@ -7,6 +8,7 @@ pub mod export;
 pub mod storylines;
 pub mod ipc;
 
+pub use error::Error;
 pub use models::*;
 pub use scanner::SaveScanner;
 

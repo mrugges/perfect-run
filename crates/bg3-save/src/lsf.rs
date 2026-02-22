@@ -1,3 +1,4 @@
+use crate::Error;
 use bg3_lib::lsf_reader::{
     LSFReader, Node, NodeAttributeValue, RegionArena, Resource,
 };
@@ -10,7 +11,7 @@ pub fn load_lsf(
     reader: &mut PackageReader,
     package: &Package,
     file_name: &str,
-) -> Result<Resource, String> {
+) -> Result<Resource, Error> {
     let pfi = package
         .files
         .iter()
@@ -20,18 +21,18 @@ pub fn load_lsf(
                 .to_lowercase()
                 .contains(&file_name.to_lowercase())
         })
-        .ok_or_else(|| format!("File '{}' not found in package", file_name))?;
+        .ok_or_else(|| Error::FileNotFound(file_name.to_string()))?;
 
     let mut lsf_reader = LSFReader::new();
-    lsf_reader.read(reader, pfi)
+    lsf_reader.read(reader, pfi).map_err(Error::Package)
 }
 
 /// Load globals.lsf using the convenience method on PackageReader.
 pub fn load_globals(
     reader: &mut PackageReader,
     package: &Package,
-) -> Result<Resource, String> {
-    reader.load_globals(package)
+) -> Result<Resource, Error> {
+    reader.load_globals(package).map_err(Error::Package)
 }
 
 /// Get a string attribute value from a node, if it exists.
@@ -149,7 +150,7 @@ fn dump_node_recursive(
     }
 
     // Recurse into children
-    for (_child_name, child_indices) in &node.children {
+    for child_indices in node.children.values() {
         for &idx in child_indices {
             if let Some(child) = arena.get_node(idx) {
                 dump_node_recursive(arena, child, depth + 1, max_depth, output);

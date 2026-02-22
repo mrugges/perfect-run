@@ -68,18 +68,17 @@ local function RegisterQuestBlocker(storylineId, questId, description)
     return { handle }
 end
 
---- Clear a flag when a specific event occurs.
+--- Clear a flag when a specific trigger flag is set.
+--- Use case: when flag A being set should cause flag B to be cleared.
 --- @param storylineId string
---- @param eventName string Osiris event to listen for
---- @param flagGuid string Flag to clear
+--- @param triggerFlagGuid string The flag that triggers the clear (listened for)
+--- @param flagGuid string The flag to clear
 --- @param description string
-local function RegisterClearFlagOnEvent(storylineId, eventName, flagGuid, description)
-    -- This is a generic listener - the event name and arity might vary
-    -- For now, support common events with known arities
+local function RegisterClearFlagOnEvent(storylineId, triggerFlagGuid, flagGuid, description)
     local handle = Ext.Osiris.RegisterListener("GlobalFlagSet", 1, "after", function(flag)
-        if flag == eventName and ConfigReader.IsDisabled(storylineId) then
+        if flag == triggerFlagGuid and ConfigReader.IsDisabled(storylineId) then
             Osi.GlobalClearFlag(flagGuid)
-            EventLog.LogBlocked(storylineId, "Cleared flag on event: " .. description)
+            EventLog.LogBlocked(storylineId, "Cleared flag " .. flagGuid .. " on trigger " .. triggerFlagGuid .. ": " .. description)
         end
     end)
 

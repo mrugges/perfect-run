@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="perfect-run.jpg" alt="Perfect Run" width="600">
+</p>
+
 # Perfect Run
 
 BG3 save file analyzer with an in-game overlay and a Script Extender mod for blocking storylines.
@@ -244,16 +248,30 @@ The overlay's **Storylines** tab writes a config file that the BG3 Script Extend
 
 Storyline definitions are in `storylines.toml`. Flag GUIDs need to be discovered from unpacked game files — use the CLI search commands to find them.
 
+**Multiplayer note:** The mod only needs to be installed by the multiplayer host — it uses server-side Osiris listeners to block events, so other players don't need it. However, BG3 multiplayer can be picky about mod mismatches, so if you run into connection issues, have all players install [BG3 Script Extender](https://github.com/Norbyte/bg3se) as well.
+
 ## Unpacking Game Files
 
 To discover flag GUIDs and dialog names for `storylines.toml`:
 
-1. Download [LSLib](https://github.com/Norbyte/lslib/releases) (Norbyte's tools)
-2. Use `ConverterApp.exe` to unpack `Gustav.pak`
-3. Use LSLib's story tools to decompile `story.div.osi`
-4. Use the CLI search commands:
+1. Download [LSLib](https://github.com/Norbyte/lslib/releases) (ExportTool zip) to your Downloads folder
+2. Run the unpack script:
    ```bash
-   build.bat run -p bg3-cli -- search-flags guardian --dir path/to/unpacked
-   build.bat run -p bg3-cli -- search-dialogs dream --dir path/to/unpacked
-   build.bat run -p bg3-cli -- search-goals emperor --dir path/to/decompiled
+   unpack-bg3.bat
    ```
+   This auto-detects your LSLib download and BG3 Steam installation, then:
+   - Extracts `Gustav.pak` and `Shared.pak`
+   - Converts binary `.lsf` flag/dialog files to readable `.lsx` XML
+   - Decompiles `story.div.osi` into Osiris goal scripts
+
+3. Search the unpacked files with the CLI:
+   ```bash
+   build.bat run -p bg3-cli -- search-flags guardian --dir bg3-unpacked\converted
+   build.bat run -p bg3-cli -- search-dialogs dream --dir bg3-unpacked\converted
+   build.bat run -p bg3-cli -- search-goals emperor --dir bg3-unpacked\goals
+   ```
+
+You can also specify paths manually:
+```bash
+unpack-bg3.bat --lslib "C:\path\to\ExportTool" --bg3 "D:\Games\Baldurs Gate 3"
+```

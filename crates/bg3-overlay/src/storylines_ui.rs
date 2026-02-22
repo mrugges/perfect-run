@@ -86,6 +86,7 @@ impl StorylinePanel {
             .collect();
 
         let mod_config = ModConfig {
+            version: 0, // write_config() sets the correct version
             disabled_storylines: disabled,
         };
 

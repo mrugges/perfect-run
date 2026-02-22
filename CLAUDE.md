@@ -35,6 +35,17 @@ mod/
 storylines.toml   Storyline definitions (TOML, embedded in overlay at compile time)
 ```
 
+## Testing
+
+```bash
+build.bat test -p bg3-save    # Fast: library tests only (~0.3s, 27 tests incl. proptest)
+build.bat test                # Full: all crates
+```
+
+A pre-push git hook runs `test -p bg3-save` automatically. Bypass with `git push --no-verify`.
+
+CI runs on GitHub Actions: library tests on Ubuntu (fast), full build + clippy on Windows.
+
 ## Key Architecture Decisions
 
 - **egui version**: The overlay uses `egui_overlay`'s re-exported egui (v0.22), NOT a separate `egui` crate. All overlay code must `use egui_overlay::egui;`.

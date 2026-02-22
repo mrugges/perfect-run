@@ -105,8 +105,8 @@ fn cmd_scan(path: Option<PathBuf>) {
     let saves = scanner.find_saves();
     println!("Found {} save files\n", saves.len());
     println!(
-        "{:<60} {:<20} {:<15} {}",
-        "PATH", "CHARACTER", "TYPE", "SAVE NAME"
+        "{:<60} {:<20} {:<15} SAVE NAME",
+        "PATH", "CHARACTER", "TYPE"
     );
     println!("{}", "-".repeat(110));
 
@@ -143,7 +143,7 @@ fn cmd_scan(path: Option<PathBuf>) {
     }
 }
 
-fn cmd_party(save: &PathBuf) {
+fn cmd_party(save: &Path) {
     let (mut reader, package) = match lsv::open_package(save) {
         Ok(v) => v,
         Err(e) => {
@@ -159,13 +159,7 @@ fn cmd_party(save: &PathBuf) {
             eprintln!("Failed to extract party from SaveInfo.json: {}", e);
             // Fallback: try Globals.lsf
             match lsf::load_globals(&mut reader, &package) {
-                Ok(resource) => match party::extract_party(&resource) {
-                    Ok(d) => d,
-                    Err(e2) => {
-                        eprintln!("Also failed Globals.lsf: {}", e2);
-                        return;
-                    }
-                },
+                Ok(resource) => party::extract_party(&resource),
                 Err(e2) => {
                     eprintln!("Also failed Globals.lsf: {}", e2);
                     return;
@@ -221,7 +215,7 @@ fn cmd_party(save: &PathBuf) {
 fn extract_party_from_save_info(
     reader: &mut bg3_save::bg3_lib::package_reader::PackageReader,
     package: &bg3_save::bg3_lib::package::Package,
-) -> Result<bg3_save::PartyData, String> {
+) -> Result<bg3_save::PartyData, bg3_save::Error> {
     let pfi = package
         .files
         .iter()
@@ -231,14 +225,14 @@ fn extract_party_from_save_info(
                 .to_lowercase()
                 .contains("saveinfo.json")
         })
-        .ok_or_else(|| "SaveInfo.json not found".to_string())?;
+        .ok_or_else(|| bg3_save::Error::FileNotFound("SaveInfo.json".into()))?;
 
-    let data = reader.decompress_file(pfi)?;
-    let text = String::from_utf8(data).map_err(|e| e.to_string())?;
+    let data = reader.decompress_file(pfi).map_err(bg3_save::Error::Package)?;
+    let text = String::from_utf8(data)?;
     bg3_save::scanner::parse_save_info_json(&text)
 }
 
-fn cmd_export(save: &PathBuf, markdown: bool) {
+fn cmd_export(save: &Path, markdown: bool) {
     let scanner = SaveScanner::default();
     let save_info = match scanner.scan_save(save) {
         Ok(info) => info,
@@ -274,7 +268,7 @@ fn cmd_export(save: &PathBuf, markdown: bool) {
     }
 }
 
-fn cmd_dump(save: &PathBuf, file: &str, depth: usize) {
+fn cmd_dump(save: &Path, file: &str, depth: usize) {
     let (mut reader, package) = match lsv::open_package(save) {
         Ok(v) => v,
         Err(e) => {
@@ -304,7 +298,7 @@ fn cmd_dump(save: &PathBuf, file: &str, depth: usize) {
     print!("{}", lsf::dump_tree(&resource.regions, depth));
 }
 
-fn cmd_extract(save: &PathBuf, file: &str) {
+fn cmd_extract(save: &Path, file: &str) {
     let (mut reader, package) = match lsv::open_package(save) {
         Ok(v) => v,
         Err(e) => {
@@ -349,7 +343,7 @@ fn cmd_extract(save: &PathBuf, file: &str) {
     }
 }
 
-fn cmd_files(save: &PathBuf) {
+fn cmd_files(save: &Path) {
     let (_reader, package) = match lsv::open_package(save) {
         Ok(v) => v,
         Err(e) => {

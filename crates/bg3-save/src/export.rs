@@ -39,7 +39,7 @@ pub fn to_markdown(save_info: &SaveInfo, party: &PartyData) -> String {
     md
 }
 
-fn format_character(md: &mut String, char: &Character) -> () {
+fn format_character(md: &mut String, char: &Character) {
     md.push_str(&format!(
         "### {} {}\n",
         char.name,

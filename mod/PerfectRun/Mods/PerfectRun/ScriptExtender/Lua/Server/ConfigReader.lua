@@ -2,30 +2,11 @@
 
 ConfigReader = {}
 
+local IPC_VERSION = 1
 local disabledStorylines = {}
-
---- Get the path to the IPC config file.
-local function GetConfigPath()
-    local seDir = Ext.IO.GetPathOverride("ScriptExtender")
-    if seDir then
-        return seDir .. "/perfect-run/config.json"
-    end
-    -- Fallback: construct path manually
-    local localAppData = os.getenv("LOCALAPPDATA")
-    if localAppData then
-        return localAppData .. "\\Larian Studios\\Baldur's Gate 3\\Script Extender\\perfect-run\\config.json"
-    end
-    return nil
-end
 
 --- Load config from disk.
 function ConfigReader.Load()
-    local path = GetConfigPath()
-    if not path then
-        Ext.Utils.PrintWarning("[PerfectRun] Could not determine config path")
-        return
-    end
-
     local content = Ext.IO.LoadFile("perfect-run/config.json", "user")
     if not content or content == "" then
         -- No config yet, that's fine
@@ -36,8 +17,14 @@ function ConfigReader.Load()
     local ok, parsed = pcall(Ext.Json.Parse, content)
     if not ok or type(parsed) ~= "table" then
         Ext.Utils.PrintWarning("[PerfectRun] Failed to parse config.json")
-        disabledStorylines = {}
-        return
+        return -- Keep previous config rather than resetting
+    end
+
+    -- Validate version
+    local version = parsed.version or 0
+    if version ~= IPC_VERSION then
+        Ext.Utils.PrintWarning("[PerfectRun] Config version mismatch: expected " .. IPC_VERSION .. ", got " .. version)
+        return -- Keep previous config
     end
 
     if type(parsed.disabled_storylines) == "table" then
