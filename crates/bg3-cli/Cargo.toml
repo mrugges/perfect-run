@@ -1,0 +1,9 @@
+[package]
+name = "bg3-cli"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bg3-save = { path = "../bg3-save" }
+clap = { version = "4", features = ["derive"] }
+walkdir = "2"

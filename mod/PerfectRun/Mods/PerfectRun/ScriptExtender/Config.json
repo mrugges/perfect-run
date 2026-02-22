@@ -1,0 +1,8 @@
+{
+    "RequiredVersion": 22,
+    "ModTable": "PerfectRun",
+    "FeatureFlags": [
+        "Osiris",
+        "Lua"
+    ]
+}

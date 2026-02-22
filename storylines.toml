@@ -1,0 +1,110 @@
+# Perfect Run - Storyline Definitions
+#
+# Each [[storyline]] entry defines a storyline that can be toggled in the overlay.
+# The hooks describe what the BG3SE mod should intercept when a storyline is disabled.
+#
+# Hook types:
+#   block_flag       - Clear a flag whenever it gets set (needs guid)
+#   block_dialog     - Stop a dialog when it starts (needs pattern)
+#   block_quest      - Close a quest when it unlocks (needs quest_id)
+#   clear_flag_on_event - Clear a flag when another event fires
+#   custom_lua       - Run arbitrary Lua code
+#
+# Flag GUIDs must be discovered from unpacked game files using:
+#   perfect-run search-flags <pattern>
+#
+# To unpack game files, use LSLib (Norbyte's tools):
+#   1. Download from https://github.com/Norbyte/lslib/releases
+#   2. Use ConverterApp.exe to unpack Gustav.pak
+#   3. Use story tools to decompile story.div.osi
+
+# =============================================================================
+# Main Quests
+# =============================================================================
+
+[[storyline]]
+id = "guardian_emperor"
+name = "Guardian / Emperor"
+description = "Blocks Guardian dream sequences and Emperor interactions that advance the Astral Prism storyline. Prevents dream camp visits and related dialog triggers."
+category = "main_quest"
+
+    # Placeholder hooks - replace GUIDs with actual values from unpacked game files
+    # Use: perfect-run search-flags guardian
+    # Use: perfect-run search-dialogs GuardianDream
+
+    [[storyline.hooks]]
+    type = "block_flag"
+    guid = "YOURURL_GuardianDream_Flag"
+    description = "Guardian dream trigger flag"
+
+    [[storyline.hooks]]
+    type = "block_dialog"
+    pattern = "YOURURL_GuardianDream"
+    description = "Guardian dream camp dialog"
+
+[[storyline]]
+id = "dark_urge"
+name = "Dark Urge"
+description = "Blocks Dark Urge personal quest events, including Bhaal-related dreams and compulsions. Only relevant if a player chose the Dark Urge origin."
+category = "main_quest"
+
+    [[storyline.hooks]]
+    type = "block_flag"
+    guid = "YOURURL_DarkUrge_Dream_Flag"
+    description = "Dark Urge dream trigger"
+
+# =============================================================================
+# Companion Quests
+# =============================================================================
+
+[[storyline]]
+id = "companion_shadowheart"
+name = "Shadowheart's Quest"
+description = "Blocks Shadowheart's personal questline events (Shar/Selune path, Nightsong, etc.)."
+category = "companion_quest"
+
+[[storyline]]
+id = "companion_astarion"
+name = "Astarion's Quest"
+description = "Blocks Astarion's personal questline events (Cazador, vampire spawn progression)."
+category = "companion_quest"
+
+[[storyline]]
+id = "companion_gale"
+name = "Gale's Quest"
+description = "Blocks Gale's personal questline events (Netherese orb, Mystra interactions)."
+category = "companion_quest"
+
+[[storyline]]
+id = "companion_laezel"
+name = "Lae'zel's Quest"
+description = "Blocks Lae'zel's personal questline events (Githyanki creche, Vlaakith)."
+category = "companion_quest"
+
+[[storyline]]
+id = "companion_wyll"
+name = "Wyll's Quest"
+description = "Blocks Wyll's personal questline events (Mizora, pact interactions)."
+category = "companion_quest"
+
+[[storyline]]
+id = "companion_karlach"
+name = "Karlach's Quest"
+description = "Blocks Karlach's personal questline events (Infernal engine, Zariel)."
+category = "companion_quest"
+
+# =============================================================================
+# World Events
+# =============================================================================
+
+[[storyline]]
+id = "underdark_mountain_routing"
+name = "Underdark vs Mountain Pass"
+description = "Controls routing between Underdark and Mountain Pass paths in Act 1. When disabled, blocks automatic transitions between these areas."
+category = "world_event"
+
+[[storyline]]
+id = "camp_night_events"
+name = "Camp Night Events"
+description = "Blocks non-companion camp night events (random encounters, ambient scenes that interrupt long rests)."
+category = "world_event"

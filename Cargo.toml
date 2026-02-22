@@ -1,0 +1,3 @@
+[workspace]
+members = ["crates/bg3-save", "crates/bg3-cli", "crates/bg3-overlay"]
+resolver = "2"
