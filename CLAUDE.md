@@ -52,3 +52,24 @@ CI runs on GitHub Actions: library tests on Ubuntu (fast), full build + clippy o
 - **`Frame::none()`** not `Frame::NONE` (v0.22 API).
 - **IPC**: Overlay writes `config.json`, Lua mod writes `status.json`, both in `%LOCALAPPDATA%\Larian Studios\Baldur's Gate 3\Script Extender\perfect-run\`.
 - **Storyline definitions**: Loaded from `storylines.toml` next to the exe, or falls back to the embedded default compiled via `include_str!`.
+
+## Overlay Gotchas
+
+- **egui_overlay window is 800x600 by default** — must resize to monitor resolution on first frame via `glfw_backend.glfw.with_primary_monitor()` + `window.set_size()`/`window.set_pos(0,0)`, otherwise the egui window can only be dragged within 800x600 bounds.
+- **Exit**: Use `glfw_backend.window.set_should_close(true)` to close the overlay. The `glfw_backend` is accessible in `gui_run()`.
+- **Save parsing**: Always prefer `SaveInfo.json` over `Globals.lsf` — the `bg3_lib` LSF binary parser fails on some newer save formats (`"failed getting node name at name_offset 12"`). SaveInfo.json is plain JSON and works on all versions.
+
+## BG3 Modding Knowledge
+
+- **Dream Visitor internal codename is "Daisy"** — search for `NIGHT_Daisy*` in goals, not "Guardian" or "DreamVisitor".
+- **Camp night system**: Dreams are queued via `DB_CampNight` entries with flag GUIDs as keys. Blocking the flag prevents the dream from being scheduled.
+- **Ceremorphosis nightmares**: `NIGHT_Ceremorphosis1/2/3` — separate from Daisy dreams but in the same camp night system.
+- **Flag GUIDs are global** — same on every BG3 installation, safe to distribute with the mod.
+- **BG3SE multiplayer**: SE itself can be mixed (host-only). Server-side Osiris listeners run on host only. Other players may need SE if connection issues arise.
+- **Storyline GUIDs** are discovered by: `unpack-bg3.bat` (extracts paks, converts flags/dialogs, decompiles story) → `bg3-cli search-goals/flags/dialogs <pattern>`.
+
+## Batch Script Gotchas (unpack-bg3.bat)
+
+- Parentheses in paths (`Program Files (x86)`) break `for` loops — use `set`/`if exist` with `!var!` delayed expansion instead.
+- Parentheses in `echo` text inside `if` blocks cause parse errors — avoid `echo Skipping (already done)`.
+- LSLib extracts to `Packed/Tools/Divine.exe` (capital D), not root.

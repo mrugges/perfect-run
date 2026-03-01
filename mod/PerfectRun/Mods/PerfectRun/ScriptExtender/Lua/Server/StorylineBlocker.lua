@@ -94,14 +94,26 @@ end
 
 local STORYLINE_HOOKS = {
     guardian_emperor = {
-        -- Guardian/Emperor dream sequences
-        -- Flag GUIDs need to be discovered from unpacked game files
-        -- Placeholder entries for now - replace with actual GUIDs
+        -- Guardian/Emperor dream sequences (internal codename: "Daisy")
+        -- and ceremorphosis nightmares
         flags = {
-            -- { guid = "ACTUAL_GUID_HERE", description = "Guardian dream trigger" },
+            -- Daisy (Dream Visitor/Guardian) dreams
+            { guid = "52669b07-9584-4c9d-8219-49679811fd4f", description = "First Guardian dream (NIGHT_DaisyDream1)" },
+            { guid = "287c7434-5031-46f2-9b7b-4999a2349081", description = "Mission statement dream (NIGHT_DaisyMissionStatement)" },
+            { guid = "6c56a05e-ad97-4100-9969-e10cd35c8860", description = "Course correction dream (NIGHT_DaisyCourseCorrection)" },
+            { guid = "7d379735-d643-40a3-aabb-7a180f792817", description = "Stelmane dream (NIGHT_DaisyStelmane)" },
+            { guid = "4965d83f-4b23-4ddf-8dfb-b7df21b2b8f6", description = "Acknowledgement dream (NIGHT_DaisyAcknowledgement)" },
+            -- Ceremorphosis nightmares
+            { guid = "98059567-b62a-4db8-9ce4-d39c792e0238", description = "Ceremorphosis nightmare 1" },
+            { guid = "485f589f-0da1-4eea-9a28-210f91837a69", description = "Ceremorphosis nightmare 2" },
+            { guid = "f25994b3-f7e3-4783-be7e-c66b8fd25952", description = "Ceremorphosis nightmare 3" },
         },
         dialogs = {
-            -- { pattern = "YOURURL_GuardianDream", description = "Guardian dream dialog" },
+            { pattern = "CAMP_DaisyIntro", description = "Dream Visitor intro" },
+            { pattern = "CAMP_DaisyMissionStatement", description = "Dream Visitor mission statement" },
+            { pattern = "CAMP_DaisyCourseCorrection", description = "Dream Visitor course correction" },
+            { pattern = "CAMP_DaisyStelmane", description = "Dream Visitor Stelmane" },
+            { pattern = "CAMP_DaisyAcknowledgement", description = "Dream Visitor acknowledgement" },
         },
         quests = {},
     },

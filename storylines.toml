@@ -24,23 +24,77 @@
 
 [[storyline]]
 id = "guardian_emperor"
-name = "Guardian / Emperor"
-description = "Blocks Guardian dream sequences and Emperor interactions that advance the Astral Prism storyline. Prevents dream camp visits and related dialog triggers."
+name = "Guardian / Emperor Dreams"
+description = "Blocks the Dream Visitor (Guardian/Emperor) camp dream sequences. Prevents all Daisy dream events and ceremorphosis nightmares from triggering during long rests."
 category = "main_quest"
 
-    # Placeholder hooks - replace GUIDs with actual values from unpacked game files
-    # Use: perfect-run search-flags guardian
-    # Use: perfect-run search-dialogs GuardianDream
+    # Guardian dream sequences (internal codename: "Daisy")
+    [[storyline.hooks]]
+    type = "block_flag"
+    guid = "52669b07-9584-4c9d-8219-49679811fd4f"
+    description = "First Guardian dream (NIGHT_DaisyDream1)"
 
     [[storyline.hooks]]
     type = "block_flag"
-    guid = "YOURURL_GuardianDream_Flag"
-    description = "Guardian dream trigger flag"
+    guid = "287c7434-5031-46f2-9b7b-4999a2349081"
+    description = "Guardian mission statement dream (NIGHT_DaisyMissionStatement)"
+
+    [[storyline.hooks]]
+    type = "block_flag"
+    guid = "6c56a05e-ad97-4100-9969-e10cd35c8860"
+    description = "Guardian course correction dream (NIGHT_DaisyCourseCorrection)"
+
+    [[storyline.hooks]]
+    type = "block_flag"
+    guid = "7d379735-d643-40a3-aabb-7a180f792817"
+    description = "Stelmane dream (NIGHT_DaisyStelmane)"
+
+    [[storyline.hooks]]
+    type = "block_flag"
+    guid = "4965d83f-4b23-4ddf-8dfb-b7df21b2b8f6"
+    description = "Guardian acknowledgement dream (NIGHT_DaisyAcknowledgement)"
+
+    # Ceremorphosis nightmares
+    [[storyline.hooks]]
+    type = "block_flag"
+    guid = "98059567-b62a-4db8-9ce4-d39c792e0238"
+    description = "Ceremorphosis nightmare 1 (NIGHT_Ceremorphosis1)"
+
+    [[storyline.hooks]]
+    type = "block_flag"
+    guid = "485f589f-0da1-4eea-9a28-210f91837a69"
+    description = "Ceremorphosis nightmare 2 (NIGHT_Ceremorphosis2)"
+
+    [[storyline.hooks]]
+    type = "block_flag"
+    guid = "f25994b3-f7e3-4783-be7e-c66b8fd25952"
+    description = "Ceremorphosis nightmare 3 (NIGHT_Ceremorphosis3)"
+
+    # Dream visitor dialog patterns
+    [[storyline.hooks]]
+    type = "block_dialog"
+    pattern = "CAMP_DaisyIntro"
+    description = "Dream Visitor intro dialog"
 
     [[storyline.hooks]]
     type = "block_dialog"
-    pattern = "YOURURL_GuardianDream"
-    description = "Guardian dream camp dialog"
+    pattern = "CAMP_DaisyMissionStatement"
+    description = "Dream Visitor mission statement dialog"
+
+    [[storyline.hooks]]
+    type = "block_dialog"
+    pattern = "CAMP_DaisyCourseCorrection"
+    description = "Dream Visitor course correction dialog"
+
+    [[storyline.hooks]]
+    type = "block_dialog"
+    pattern = "CAMP_DaisyStelmane"
+    description = "Dream Visitor Stelmane dialog"
+
+    [[storyline.hooks]]
+    type = "block_dialog"
+    pattern = "CAMP_DaisyAcknowledgement"
+    description = "Dream Visitor acknowledgement dialog"
 
 [[storyline]]
 id = "dark_urge"
@@ -48,10 +102,8 @@ name = "Dark Urge"
 description = "Blocks Dark Urge personal quest events, including Bhaal-related dreams and compulsions. Only relevant if a player chose the Dark Urge origin."
 category = "main_quest"
 
-    [[storyline.hooks]]
-    type = "block_flag"
-    guid = "YOURURL_DarkUrge_Dream_Flag"
-    description = "Dark Urge dream trigger"
+    # Dark Urge butler dreams and compulsion events
+    # These are solo dream sequences that fire during long rests
 
 # =============================================================================
 # Companion Quests
