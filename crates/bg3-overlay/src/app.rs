@@ -112,9 +112,16 @@ impl OverlayApp {
     }
 
     fn load_save(&mut self, path: PathBuf) {
-        // Scan save info for display
-        let scanner = SaveScanner::default();
-        self.save_info = scanner.scan_save(&path).ok();
+        // Look up save_info from our cached list first (avoids re-opening the archive)
+        self.save_info = self
+            .available_saves
+            .iter()
+            .find(|s| s.path == path)
+            .cloned()
+            .or_else(|| {
+                let scanner = SaveScanner::default();
+                scanner.scan_save(&path).ok()
+            });
 
         match load_party_from_save(&path) {
             Ok(data) => {
@@ -360,17 +367,12 @@ fn format_character_header(ch: &Character) -> String {
 }
 
 /// Convert internal origin/race names to friendly display names.
-fn friendly_name(name: &str) -> &str {
-    // Known companion origins
+fn friendly_name(name: &str) -> String {
     match name {
-        "Shadowheart" | "Astarion" | "Gale" | "Karlach" | "Wyll" | "Halsin" | "Minthara"
-        | "Jaheira" | "Minsc" => name,
-        // Custom characters show as race — clean up internal race names
-        n if n.contains('_') => {
-            // "Gnome_Deep" -> "Deep Gnome", "Elf_WoodElf" -> "Wood Elf", etc.
-            n
-        }
-        _ => name,
+        "Shadowheart" | "Astarion" | "Gale" | "Karlach" | "Wyll" | "Laezel" | "Halsin"
+        | "Minthara" | "Jaheira" | "Minsc" => name.to_string(),
+        n if n.contains('_') => n.replace('_', " "),
+        _ => name.to_string(),
     }
 }
 
@@ -409,8 +411,8 @@ fn load_party_from_save(path: &std::path::Path) -> Result<PartyData, bg3_save::E
 
     match save_info_result {
         Ok(data) => Ok(data),
-        Err(_) => {
-            // Fallback: try Globals.lsf (may fail on newer save formats)
+        Err(e) => {
+            eprintln!("SaveInfo.json parse failed ({}), falling back to Globals.lsf", e);
             let resource = lsf::load_globals(&mut reader, &package)?;
             Ok(party::extract_party(&resource))
         }

@@ -54,9 +54,7 @@ impl StorylinePanel {
         match storylines::load_storylines_from_str(DEFAULT_STORYLINES_TOML) {
             Ok(defs) => {
                 self.definitions = defs;
-                if self.load_error.is_none() {
-                    self.load_error = None;
-                }
+                self.load_error = None;
             }
             Err(e) => {
                 self.load_error = Some(format!("Error parsing embedded storylines: {}", e));

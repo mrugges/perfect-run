@@ -34,12 +34,13 @@ impl egui_overlay::EguiOverlay for PerfectRunOverlay {
             self.resized = true;
             glfw_backend.glfw.with_primary_monitor(|_, monitor| {
                 if let Some(monitor) = monitor {
-                    let mode = monitor.get_video_mode().unwrap();
-                    glfw_backend.window.set_size(
-                        mode.width as i32,
-                        mode.height as i32,
-                    );
-                    glfw_backend.window.set_pos(0, 0);
+                    if let Some(mode) = monitor.get_video_mode() {
+                        glfw_backend.window.set_size(
+                            mode.width as i32,
+                            mode.height as i32,
+                        );
+                        glfw_backend.window.set_pos(0, 0);
+                    }
                 }
             });
         }
